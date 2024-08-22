@@ -14,7 +14,7 @@ from screening_lasso import compute_duality_gap_lasso, \
 
 def reg_lsp(w, alpha):
     """Compute the regularizer objective value."""
-    return sum(np.min(w, alpha))
+    return np.sum(np.minimum(w, alpha))
     # sum(np.log(1 + np.abs(w) / theta))
 
 

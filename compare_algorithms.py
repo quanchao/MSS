@@ -151,49 +151,48 @@ if __name__ == '__main__':
                         filetxt = open(filename, "w")
                         filename = filename + opt_mm
                         print(filename)
-                        timing = np.zeros([len(Tvec), len(thetavec), n_iter])
-                        optimality = np.zeros([len(Tvec), len(thetavec), n_iter])
-                        maxi = np.zeros([len(Tvec), len(thetavec), n_iter])
-                        f_meas = np.zeros([len(Tvec), len(thetavec), n_iter])
-                        cost = np.zeros([len(Tvec), len(thetavec), n_iter])
+                        timing = np.zeros([len(Tvec), len(thetavec)])
+                        optimality = np.zeros([len(Tvec), len(thetavec)])
+                        maxi = np.zeros([len(Tvec), len(thetavec)])
+                        f_meas = np.zeros([len(Tvec), len(thetavec)])
+                        cost = np.zeros([len(Tvec), len(thetavec)])
         
-                        for i in range(n_iter):
-                            np.random.seed(i)
-                            X, y, wopt = generate_random_gaussian(n_samples,
-                                                                  n_features,
-                                                                  n_informative,
-                                                                  sigma_bruit)
-                            lambdamax = np.max(np.abs(np.dot(X.transpose(), y)))
-                            lambdavec = lambdamax * Tvec
-                            print(lambdavec)
-                            for i_theta, theta in enumerate(thetavec):
-                                lambdavec *= theta
-                                if i_theta == 0:
-                                    w_init = []
-                                else:
-                                    w_init = w_th.copy()
-                                for i_lambd, lambd in enumerate(lambdavec):
-                                    w, run_time = run_algo(X, y, lambd, theta, algo,
-                                                           tol, dual_gap_inner,
-                                                           screen_frq, w_init)
-                                    w_init = w.copy()
-                                    if i_lambd == 0:
-                                        w_th = w.copy()
-                                    timing[i_lambd, i_theta, i] = run_time
-                                    tol_opt = max(tol, 1e-3)
-                                    optimality[i_lambd, i_theta, i], maxi[i_lambd, i_theta, i], f_meas[i_lambd, i_theta, i], cost[i_lambd, i_theta, i] = compute_performance(w,lambd, theta,wopt,tol=tol_opt)
-                                    print(i, theta, lambd, run_time,
-                                          np.sum(timing[:, :, i]),
-                                          f_meas[i_lambd, i_theta, i],
-                                          optimality[i_lambd, i_theta, i])
-                                    filetxt.write('{} {} {} {} {} {} {}\n'.format(
-                                        theta, 
-                                        lambd, 
-                                        run_time, 
-                                        np.sum(timing[:, :, i]), 
-                                        f_meas[i_lambd, i_theta, i], 
-                                        optimality[i_lambd, i_theta, i],
-                                        cost[i_lambd, i_theta, i],
-                                    ))
-                            #np.savez(filename, timing=timing, optimality=optimality,
-                            #         maxi=maxi, f_meas=f_meas, cost=cost)
+                
+                        X, y, wopt = generate_random_gaussian(n_samples,
+                                                                n_features,
+                                                                n_informative,
+                                                                sigma_bruit)
+                        lambdamax = np.max(np.abs(np.dot(X.transpose(), y)))
+                        lambdavec = lambdamax * Tvec
+                        print(lambdavec)
+                        for i_theta, theta in enumerate(thetavec):
+                            lambdavec *= theta
+                            if i_theta == 0:
+                                w_init = []
+                            else:
+                                w_init = w_th.copy()
+                            for i_lambd, lambd in enumerate(lambdavec):
+                                w, run_time = run_algo(X, y, lambd, theta, algo,
+                                                        tol, dual_gap_inner,
+                                                        screen_frq, w_init)
+                                w_init = w.copy()
+                                if i_lambd == 0:
+                                    w_th = w.copy()
+                                timing[i_lambd, i_theta] = run_time
+                                tol_opt = max(tol, 1e-3)
+                                optimality[i_lambd, i_theta], maxi[i_lambd, i_theta], f_meas[i_lambd, i_theta], cost[i_lambd, i_theta] = compute_performance(w,lambd, theta,wopt,tol=tol_opt)
+                                print(theta, lambd, run_time,
+                                        np.sum(timing[:, :]),
+                                        f_meas[i_lambd, i_theta],
+                                        optimality[i_lambd, i_theta])
+                                filetxt.write('{} {} {} {} {} {} {}\n'.format(
+                                    theta, 
+                                    lambd, 
+                                    run_time, 
+                                    np.sum(timing[:, :]), 
+                                    f_meas[i_lambd, i_theta], 
+                                    optimality[i_lambd, i_theta],
+                                    cost[i_lambd, i_theta],
+                                ))
+                        #np.savez(filename, timing=timing, optimality=optimality,
+                        #         maxi=maxi, f_meas=f_meas, cost=cost)
