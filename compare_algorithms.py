@@ -127,7 +127,7 @@ if __name__ == '__main__':
 
     N = 100
     Tvec = np.power(10.0, -2 * np.linspace(1, N - 1, N) / (N - 1))
-    pvec = [1, 0.1, 0.01]
+    pvec = [1]
 
 
     tolvec = [1e-3,1e-4,1e-5]
