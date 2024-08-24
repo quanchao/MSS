@@ -134,7 +134,7 @@ if __name__ == '__main__':
     dual_gap_inner = 1e-4
     screen_frq = 10
     path_results = './'
-    algo_list = ['mm_screening_2']
+    algo_list = ['mm_screening_genuine']
 
     
     dual_gap_inner = 1e-4
@@ -163,10 +163,10 @@ if __name__ == '__main__':
                                                                 n_informative,
                                                                 sigma_bruit)
                         lambdamax = np.max(np.abs(np.dot(X.transpose(), y)))
+                        print("lamddaammax", lambdamax)
                         lambdavec = lambdamax * Tvec
                         print(lambdavec)
                         for i_p, p in enumerate(pvec):
-                            lambdavec *= p
                             if i_p == 0:
                                 w_init = []
                             else:
