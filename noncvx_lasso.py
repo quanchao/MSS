@@ -200,12 +200,36 @@ def MMLasso(X, y, lbd, p, approx=approx_lsp, maxiter=1000,
     naive majorizartion minimization strategy without any inner screening
     nor sceening propagation
     """
+    n_features = X.shape[1]
+    if w_init == []:
+        w_mm = np.full(n_features, 0.)
+
+    else:
+        w_mm = w_init
+    opt = False
+    i = 0
+
+    while i < maxiter and not opt:
+        lbdaux = lbd * approx(w_mm, p)
+
+
+        w_mm, hist_screen, _, residual, correl = weighted_prox_lasso_bcd_screening(X, y, lbdaux, w_mm,
+                                    winit=w_mm, 
+                                    nbitermax=maxiter_inner,
+                                    do_screen=False)
+        if approx == approx_lsp:
+            opt = check_opt_logsum(X, y, w_mm, lbd, p, tol_first_order)
+
+        i += 1
+        #print("current_lost", current_cost(X, y, w_mm, lbd, p))
+    return w_mm
+
 
     n_features = X.shape[1]
     if w_init == []:
         w_mm = np.full(n_features, 0.)
     else:
-        w_mm = w_init.copy()
+        w_mm = w_init
     cout_mm = []
     if type(lbd) is not np.array:
         lbd = np.full(X.shape[1], lbd)
