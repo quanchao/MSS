@@ -9,7 +9,6 @@ from screening_lasso import generate_random_gaussian, \
 from screening_lasso import compute_duality_gap_lasso, \
     compute_duality_gap_prox_lasso
 
-alpha = 1
 # Functions for LOGSUM regularizers
 
 def reg_lsp(w, p):
@@ -41,10 +40,10 @@ def prox_lsp(w, lbd, p):
     return np.sign(w) * wopt
 
 
-def approx_lsp(w, p):
+def approx_lsp(w, p, alpha):
     """Vector of the linear approximation of capped L1 I(|w| < alpha)"""
-    # return  np.where(np.abs(w) < alpha, 0, 1)
-    return np.full(w.shape,1)
+    return  np.where(np.abs(w) < alpha, 0, 1)
+    #return np.full(w.shape,1)
     # return 1. / (np.abs(w) + 1)
 
 def check_opt_logsum(X, y, w, lbd, p, tol=1e-3, tol_val=1e-4):
@@ -63,7 +62,7 @@ def check_opt_logsum(X, y, w, lbd, p, tol=1e-3, tol_val=1e-4):
     else:
         opt_ind_zero = True
     if ind_nz.shape[0] > 0:
-        opt_ind_nz = np.all(abs(- correl[ind_nz] + lbd[ind_nz] * np.sign(w[ind_nz]) * approx_lsp(w[ind_nz],p)) < tol)
+        opt_ind_nz = np.all(abs(- correl[ind_nz] + lbd[ind_nz] * np.sign(w[ind_nz]) * approx_lsp(w[ind_nz],p, 0.5*lbd)) < tol)
     else:
         opt_ind_nz = True
     #print("opt_ind_zero", opt_ind_zero, "opt_ind_zero", opt_ind_nz)
