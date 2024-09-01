@@ -45,6 +45,22 @@ def run_GIST(X, y, lambd, p, tol=1e-5, w_init=[]):
     return w_gist, time_gist
 
 
+def run_MMscreening(X, y, lambd, p, tol=1e-5, dual_gap_inner=1e-3,
+                            w_init=[]):
+    """
+    majorization minimization only with inner screening
+    """
+    tic = time()
+    w_mmlsp_screened_gen = MMLasso(X, y, lambd, p,
+                                approx=approx_lsp,
+                                maxiter=max_iter,
+                                tol_first_order=tol,
+                                dual_gap_inner=dual_gap_inner,
+                                maxiter_inner=maxiter_inner,
+                                w_init=w_init)
+    time_mmlsp_screened_gen = time() - tic
+    return w_mmlsp_screened_gen, time_mmlsp_screened_gen
+
 def run_MMscreening_genuine(X, y, lambd, p, tol=1e-5, dual_gap_inner=1e-3,
                             w_init=[]):
     """
@@ -87,6 +103,11 @@ def run_algo(X, y, lambd, p, algo, tol, dual_gap_inner=1e-3,
         w, run_time = run_BCD(X, y, lambd, p, tol=tol, w_init=w_init)
     elif algo == 'gist':
         w, run_time = run_GIST(X, y, lambd, p, tol=tol, w_init=w_init)
+    elif algo == "no_screening":
+        w, run_time = run_MMscreening(X, y, lambd, p,
+                                              tol=tol,
+                                              dual_gap_inner=dual_gap_inner,
+                                              w_init=w_init)
 
     elif algo == 'mm_screening_genuine':
         w, run_time = run_MMscreening_genuine(X, y, lambd, p,
@@ -134,7 +155,7 @@ if __name__ == '__main__':
     dual_gap_inner = 1e-4
     screen_frq = 10
     path_results = './'
-    algo_list = ['mm_screening_genuine']
+    algo_list = ['mm_screening_genuine', 'mm_screening_2']
 
     
     dual_gap_inner = 1e-4
@@ -165,13 +186,14 @@ if __name__ == '__main__':
                         lambdamax = np.max(np.abs(np.dot(X.transpose(), y)))
                         print("lamddaammax", lambdamax)
                         lambdavec = lambdamax * Tvec
-                        print(lambdavec)
+                        # print(lambdavec)
                         for i_p, p in enumerate(pvec):
                             if i_p == 0:
                                 w_init = []
                             else:
                                 w_init = w_th.copy()
                             for i_lambd, lambd in enumerate(lambdavec):
+                                print("lambda", lambd)
                                 w, run_time = run_algo(X, y, lambd, p, algo,
                                                         tol, dual_gap_inner,
                                                         screen_frq, w_init)
@@ -184,7 +206,8 @@ if __name__ == '__main__':
                                 print(p, lambd, run_time,
                                         np.sum(timing[:, :]),
                                         f_meas[i_lambd, i_p],
-                                        optimality[i_lambd, i_p])
+                                        optimality[i_lambd, i_p],
+                                        cost[i_lambd], i_p)
                                 filetxt.write('{} {} {} {} {} {} {}\n'.format(
                                     p, 
                                     lambd, 
