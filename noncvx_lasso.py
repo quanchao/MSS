@@ -11,7 +11,8 @@ from screening_lasso import compute_duality_gap_lasso, \
 
 # Functions for LOGSUM regularizers
 
-def reg_lsp(w, p):
+def reg_lsp(w, p, alpha):
+    print("alpha", alpha)
     """Compute the regularizer objective value."""
     return np.sum(np.minimum(np.abs(w), alpha))
     # sum(np.log(1 + np.abs(w) / theta))
@@ -62,7 +63,7 @@ def check_opt_logsum(X, y, w, lbd, p, tol=1e-3, tol_val=1e-4):
     else:
         opt_ind_zero = True
     if ind_nz.shape[0] > 0:
-        opt_ind_nz = np.all(abs(- correl[ind_nz] + lbd[ind_nz] * np.sign(w[ind_nz]) * approx_lsp(w[ind_nz],p, 0.5*lbd)) < tol)
+        opt_ind_nz = np.all(abs(- correl[ind_nz] + lbd[ind_nz] * np.sign(w[ind_nz]) * approx_lsp(w[ind_nz],p, 0.5*lbd[ind_nz])) < tol)
     else:
         opt_ind_nz = True
     #print("opt_ind_zero", opt_ind_zero, "opt_ind_zero", opt_ind_nz)
@@ -73,7 +74,7 @@ def check_opt_logsum(X, y, w, lbd, p, tol=1e-3, tol_val=1e-4):
 # Generic functions
 #
 
-def current_cost(X, y, w, lbd, p, reg=reg_lsp):
+def current_cost(X, y, w, lbd, p, alpha, reg=reg_lsp):
     """Compute the objective function 
     
         min_w 0.5 || y - X@w||_2^2 + \lambda*reg
@@ -81,7 +82,7 @@ def current_cost(X, y, w, lbd, p, reg=reg_lsp):
         where reg is nonconvex regularizer
     """
     normres2 = norm(y - X.dot(w))**2
-    return 0.5 * normres2 + lbd*reg_lsp(w, p)
+    return 0.5 * normres2 + lbd*reg_lsp(w, p, alpha)
 
 
 def GIST(X, y, lbd, p, reg=reg_lsp, prox=prox_lsp, eta=1.5,
@@ -207,9 +208,9 @@ def MMLasso(X, y, lbd, p, approx=approx_lsp, maxiter=1000,
         w_mm = w_init
     opt = False
     i = 0
-
+    alpha = 0.5* lbd
     while i < maxiter and not opt:
-        lbdaux = lbd * approx(w_mm, p)
+        lbdaux = lbd * approx(w_mm, p, alpha)
 
 
         w_mm, hist_screen, _, residual, correl = weighted_prox_lasso_bcd_screening(X, y, lbdaux, w_mm,
@@ -223,27 +224,6 @@ def MMLasso(X, y, lbd, p, approx=approx_lsp, maxiter=1000,
         #print("current_lost", current_cost(X, y, w_mm, lbd, p))
     return w_mm
 
-
-    n_features = X.shape[1]
-    if w_init == []:
-        w_mm = np.full(n_features, 0.)
-    else:
-        w_mm = w_init
-    cout_mm = []
-    if type(lbd) is not np.array:
-        lbd = np.full(X.shape[1], lbd)
-    opt = False
-    i = 0
-    while i < maxiter and not opt:
-        # print("w_mm", w_mm)
-        lbdaux = lbd * approx(w_mm, p)
-
-        w_mm, _, _, _, _ = weighted_prox_lasso_bcd_screening(X, y, lbdaux, nbitermax=maxiter_inner,
-                                  dual_gap_tol=dual_gap_inner, winit=w_mm, do_screen=False)
-        if approx == approx_lsp:
-            opt = check_opt_logsum(X, y, w_mm, lbd, p, tol=tol_first_order)
-        i += 1
-    return w_mm, cout_mm
 
 
 def MMLasso_screening_genuine(X, y, lbd, p, approx=approx_lsp,
@@ -259,9 +239,10 @@ def MMLasso_screening_genuine(X, y, lbd, p, approx=approx_lsp,
         w_mm = w_init
     opt = False
     i = 0
+    alpha = 0.5*lbd
 
     while i < maxiter and not opt:
-        lbdaux = lbd * approx(w_mm, p)
+        lbdaux = lbd * approx(w_mm, p, alpha)
 
         if i < init_iter:
             dual_gap = dual_gap_inner
@@ -304,9 +285,11 @@ def MMLasso_screening(X, y, lbd, p, approx=approx_lsp, maxiter=1000,
     screened = np.zeros(n_features)
     screened_val = np.zeros(n_features)
     lbd_ref = np.zeros(n_features)
+    alpha = 0.5*lbd
+
 
     while i < maxiter and not opt:
-        lbdaux = lbd * approx(w_mm, p)
+        lbdaux = lbd * approx(w_mm, p, alpha)
         gap = 0
         if i < init_iter:
             dual_gap = dual_gap_inner
@@ -379,8 +362,10 @@ def MMLasso_screening_monitoring(X, y, lbd, p, approx=approx_lsp,
     lbd_ref = np.zeros(n_features)
     nb_pre_screen = np.zeros(maxiter)
     nb_post_screen = np.zeros(maxiter)
+    alpha = 0.5*lbd
+
     while i < maxiter and not opt:
-        lbdaux = lbd * approx(w_mm, p)
+        lbdaux = lbd * approx(w_mm, p, alpha)
         gap = 0
         if i < init_iter:
             dual_gap = dual_gap_inner

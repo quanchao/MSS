@@ -124,14 +124,14 @@ def run_algo(X, y, lambd, p, algo, tol, dual_gap_inner=1e-3,
     return w, run_time
 
 
-def compute_performance(w, lambd, p, wopt, reg=reg_lsp, tol=1e-3):
+def compute_performance(w, lambd, p, wopt, alpha, reg=reg_lsp, tol=1e-3):
     optimality = check_opt_logsum(X, y, w, lambd, p, tol=tol)
     maxi = np.max(abs(wopt - w))
     y_true = np.abs(wopt) > 0
     y_pred = np.abs(w) > 0
     f_meas_a = precision_recall_fscore_support(y_true, y_pred, pos_label=1,
                                                average='binary')[2]
-    cost = current_cost(X, y, w, lambd, p, reg)
+    cost = current_cost(X, y, w, lambd, p, alpha, reg)
     return optimality, maxi, f_meas_a, cost
 
 if __name__ == '__main__':
@@ -202,7 +202,8 @@ if __name__ == '__main__':
                                     w_th = w.copy()
                                 timing[i_lambd, i_p] = run_time
                                 tol_opt = max(tol, 1e-3)
-                                optimality[i_lambd, i_p], maxi[i_lambd, i_p], f_meas[i_lambd, i_p], cost[i_lambd, i_p] = compute_performance(w,lambd, p,wopt,tol=tol_opt)
+                                alpha = 0.5*lambd
+                                optimality[i_lambd, i_p], maxi[i_lambd, i_p], f_meas[i_lambd, i_p], cost[i_lambd, i_p] = compute_performance(w,lambd, p,wopt,alpha, tol=tol_opt)
                                 print(p, lambd, run_time,
                                         np.sum(timing[:, :]),
                                         f_meas[i_lambd, i_p],
